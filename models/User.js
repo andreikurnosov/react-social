@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Schema = mogoose.Schema;
+const Schema = mongoose.Schema;
 
 
 // Create Schema
@@ -17,16 +17,15 @@ const UserSchema = new Schema({
     required: true
   },
   avatar: {
-    type: String,
-    required: true
+    type: String
   },
   date: {
     type: Date,
-    defaul: Date.now
+    default: Date.now()
   },
 
 });
 
-module.exports = User = mogoose.model('users', UserSchema);
+module.exports = User = mongoose.model('users', UserSchema);
 
 
