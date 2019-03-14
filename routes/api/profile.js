@@ -5,6 +5,7 @@ const passport = require('passport');
 
 // Load Validation
 const validateProfileInput = require('../../validation/profile');
+const validateExperienceInput = require('../../validation/experience');
 
 // Load Profile Model
 const Profile = require('../../models/Profile');
@@ -42,17 +43,17 @@ router.get(
 // @desc    Get all profiles
 // @access  Public
 router.get('/all', (req, res) => {
-  const errors = {}
+  const errors = {};
   Profile.find()
-  .populate('user', ['name', 'avatar'])
-  .then(profiles => {
-    if (!profiles) {
-      errors.noprofiles = 'There are no profiles';
-      return res.status(404).json(errors)
-    }
-    res.json(profiles)
-  })
-  .catch((err) => res.status(404).json({profiles: 'There is no profiles'}));
+    .populate('user', ['name', 'avatar'])
+    .then((profiles) => {
+      if (!profiles) {
+        errors.noprofiles = 'There are no profiles';
+        return res.status(404).json(errors);
+      }
+      res.json(profiles);
+    })
+    .catch((err) => res.status(404).json({ profiles: 'There is no profiles' }));
 });
 
 // @route   GET api/profile/handle/:handle
@@ -159,6 +160,39 @@ router.post(
             .then((profile) => res.json(profile));
         });
       }
+    });
+  }
+);
+
+// @route   POST api/profile/experience
+// @desc    Add experience to profile
+// @access  Private
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { errors, isValid } = validateExperienceInput(req.body);
+
+    // Check validation
+    if (!isValid) {
+      // Return any errors with 400 status
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id }).then((profile) => {
+      const newExp = {
+        title: req.body.title,
+        company: req.body.company,
+        location: req.body.location,
+        from: req.body.from,
+        to: req.body.to,
+        description: req.body.description
+      };
+
+      // Add to exp array
+      profile.experience.unshift(newExp);
+
+      profile.save().then((profile) => res.json(profile));
     });
   }
 );
